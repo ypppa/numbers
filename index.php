@@ -2,118 +2,117 @@
 
 class Calculator
 {
-    private string $taskName;
-    private string $separator;
-    private array $modifiers;
+    private ModifyStrategyInterface $strategy;
 
-    public function __construct(string $taskName, string $separator, array $modifiers)
+    public function __construct(ModifyStrategyInterface $strategy)
     {
-        $this->taskName = $taskName;
-        $this->separator = $separator;
-        $this->modifiers = $modifiers;
+        $this->strategy = $strategy;
     }
 
-    public function execute(int $start, int $end): void
+    public function make(int $start, int $end)
     {
-        print "$this->taskName\n";
+        print $this->strategy->getName() . "\n";
         for ($i = $start; $i <= $end; $i++) {
             if ($i > 1) {
-                print $this->separator;
+                print $this->strategy->getSeparator();
             }
-            foreach ($this->modifiers as $f) {
-                print $f($i);
-            }
+            print $this->strategy->handle($i);
         }
         print "\n";
     }
 }
 
-function task1()
+interface ModifyStrategyInterface
 {
-    $modifiers = [
-        function ($i) {
-            if ($i % 3 !== 0 && $i % 5 !== 0) {
-                return $i;
-            }
+    public function handle(int $i);
 
-            return '';
-        },
-        function ($i) {
-            if ($i % 3 === 0) {
+    public function getName(): string;
+
+    public function getSeparator(): string;
+}
+
+abstract class AbstractStrategy implements ModifyStrategyInterface
+{
+    protected string $name;
+    protected string $separator;
+
+    abstract public function handle(int $i): string;
+
+    public function getName(): string
+    {
+        return $this->name;
+    }
+
+    public function getSeparator(): string
+    {
+        return $this->separator;
+    }
+}
+
+class Strategy1 extends AbstractStrategy
+{
+    protected string $name = 'Task v1:';
+    protected string $separator = ' ';
+
+    public function handle(int $i): string
+    {
+        switch (true) {
+            case ($i % 3 === 0 && $i % 5 === 0):
+                return 'papow';
+            case ($i % 3 === 0):
                 return 'pa';
-            }
-
-            return '';
-        },
-        function ($i) {
-            if ($i % 5 === 0) {
+            case ($i % 5 === 0):
                 return 'pow';
-            }
-
-            return '';
-        },
-    ];
-    $calc = new Calculator('Task v1:', ' ', $modifiers);
-
-    $calc->execute(1, 20);
-}
-
-function task2()
-{
-    $modifiers = [
-        function ($i) {
-            if ($i % 2 !== 0 && $i % 7 !== 0) {
+            default:
                 return $i;
-            }
-
-            return '';
-        },
-        function ($i) {
-            if ($i % 2 === 0) {
-                return 'hatee';
-            }
-
-            return '';
-        },
-        function ($i) {
-            if ($i % 7 === 0) {
-                return 'ho';
-            }
-
-            return '';
-        },
-    ];
-    $calc = new Calculator('Task v2:', '-', $modifiers);
-
-    $calc->execute(1, 15);
+        }
+    }
 }
 
-function task3()
+class Strategy2 extends AbstractStrategy
 {
-    $modifiers = [
-        function ($i) {
-            switch (true) {
-                case in_array($i, [1, 4]) :
-                    $res = 'joff';
-                    break;
-                case $i === 9 :
-                    $res = 'jofftchoff';
-                    break;
-                case $i > 5 :
-                    $res = 'tchoff';
-                    break;
-                default:
-                    $res = $i;
-            }
+    protected string $name = 'Task v2:';
+    protected string $separator = '-';
 
-            return $res;
-        },
-    ];
-    $calc = new Calculator('Task v3:', '-', $modifiers);
-
-    $calc->execute(1, 10);
+    public function handle(int $i): string
+    {
+        switch (true) {
+            case ($i % 2 === 0 && $i % 7 === 0):
+                return 'hateeho';
+            case ($i % 2 === 0):
+                return 'hatee';
+            case ($i % 7 === 0):
+                return 'ho';
+            default:
+                return $i;
+        }
+    }
 }
 
-task1();
-task2();
-task3();
+class Strategy3 extends AbstractStrategy
+{
+    protected string $name = 'Task v3:';
+    protected string $separator = '-';
+
+    public function handle(int $i): string
+    {
+        switch (true) {
+            case in_array($i, [1, 4]) :
+                return 'joff';
+            case $i === 9 :
+                return 'jofftchoff';
+            case $i > 5 :
+                return 'tchoff';
+            default:
+                return $i;
+        }
+    }
+}
+
+$calc1 = new Calculator(new Strategy1);
+$calc2 = new Calculator(new Strategy2);
+$calc3 = new Calculator(new Strategy3);
+
+$calc1->make(1, 20);
+$calc2->make(1, 15);
+$calc3->make(1, 10);
