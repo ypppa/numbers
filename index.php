@@ -13,7 +13,7 @@ class Calculator
     {
         print $this->strategy->getName() . "\n";
         for ($i = $start; $i <= $end; $i++) {
-            if ($i > 1) {
+            if ($i > $start) {
                 print $this->strategy->getSeparator();
             }
             print $this->strategy->handle($i);
